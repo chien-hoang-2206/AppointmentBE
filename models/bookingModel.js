@@ -3,24 +3,42 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
     user_id: {
-        type: Number,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Account'
     },
     patientId: {
-        type: Number,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Patient'
     },
-    appointmentId: {
-        type: Number,
+    shiftId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Schedule'
     },
-    time: {
+    status: {
+        type: Number,
+        required: true,
+        default: 1
+    },
+    price: {
+        type: Number,
+        required: true,
+        default: 1
+    },
+    created_at: {
         type: Date,
+        default: Date.now
     },
-    bloodPressure: {
+    feedback_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Feedback'
+    },
+    blood_pressure: {
         type: Number,
     },
     temperature: {
         type: Number,
     },
-    respiratoryRate: {
+    respiratory_rate: {
         type: Number,
     },
     height: {
@@ -46,20 +64,17 @@ const userSchema = new mongoose.Schema({
     },
 
     diagnosis: {
-        type: Number,
+        type: String,
     },
-
-    result: {
-        type: Number,
+    symptom: {
+        type: String,
     },
-
-    status: {
-        type: Number,
+    note: {
+        type: String,
     },
-    created_at: {
-        type: Date,
-        default: Date.now
-    }
+    prescription: {
+        type: String,
+    },
 });
 
 module.exports = mongoose.model('Booking', userSchema);

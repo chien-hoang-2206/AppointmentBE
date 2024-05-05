@@ -1,14 +1,32 @@
 const Department = require('../models/departmentModel')
+
 const departmentController = {
     getListDepartment: async (req, res) => {
         try {
             const { branch } = req.query;
             let query = {};
-            if (role) {
+            if (branch) {
                 query.branchId = branch;
             }
             const listData = await Department.find(query);
             res.json(listData);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
+    getListDepartmentForDoctor: async (req, res) => {
+        try {
+            const { branchId, doctorId } = req.query;
+            if (branchId && doctorId) {
+                const departments = await Department.find({ branchId }).lean();
+                let filteredDepartments = [];
+                departments.forEach((department) => {
+                    if (department.doctorIds.includes(doctorId)) {
+                        filteredDepartments.push(department);
+                    }
+                });
+                res.json(filteredDepartments);
+            }
         } catch (err) {
             res.status(500).json({ message: err.message });
         }
@@ -29,11 +47,11 @@ const departmentController = {
     },
     updateDepartment: async (req, res) => {
         try {
-            const { _id, name, description } = req.body;
+            const { _id, name, doctorIds } = req.body;
             const existingObject = await Department.findById(_id);
             if (existingObject) {
                 existingObject.name = name;
-                existingObject.description = description;
+                existingObject.doctorIds = doctorIds;
                 // Lưu thay đổi
                 await existingObject.save();
                 // Trả về thông tin đã cập nhật

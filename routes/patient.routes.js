@@ -11,6 +11,9 @@ router.post("/", patientController.signupPatient);
 // //list  patient user
 router.get("/", patientController.getListPatient);
 
+//patient detail
+router.get("/:id", patientController.getPatientDetail);
+
 //edit patient
 router.put("/", patientController.updatePatientInfo);
 

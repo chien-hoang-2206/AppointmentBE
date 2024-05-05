@@ -1,4 +1,6 @@
+const bookingModel = require('../models/bookingModel');
 const Patient = require('../models/patientModel');
+const scheduleModel = require('../models/scheduleModel');
 
 const patientController = {
 
@@ -29,6 +31,40 @@ const patientController = {
       res.status(500).json({ message: err.message });
     }
   },
+  getPatientDetail: async (req, res) => {
+    try {
+      const { id } = req.params;
+      let users = await Patient.findById(id)
+      let query = {
+        patientId: id
+      };
+
+      let listData = await bookingModel.find(query)
+      let newList = []
+      for (let i = 0; i < listData.length; i++) {
+        const shiftInfo = listData[i].shiftId; // Lấy thông tin về shift từ listData
+        console.log("🚀 ~ getPatientDetail: ~ listData[i]:", listData[i])
+        if (shiftInfo) {
+          const scheduleInfo = await scheduleModel.findById(shiftInfo); // Tìm thông tin chi tiết về shift trong bảng Schedule
+          const newObject = {
+            ...listData[i]._doc,
+            branchName: scheduleInfo.branchName,
+            date: scheduleInfo.date,
+            timeStart: scheduleInfo.timeStart,
+            timeEnd: scheduleInfo.timeEnd,
+          }
+          newList.push(newObject)
+        }
+      }
+      const data = {
+        users: users,
+        List: newList
+      }
+      res.status(200).json(data);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  },
   signupPatient: async (req, res) => {
     try {
       const {
@@ -45,6 +81,7 @@ const patientController = {
         province,
         district,
         ward,
+        avatar,
         address,
       } = req.body;
       // Kiểm tra xem email đã tồn tại trong cơ sở dữ liệu chưa
@@ -72,6 +109,7 @@ const patientController = {
         nation,
         province,
         district,
+        avatar,
         ward,
         address,
       });
@@ -116,6 +154,7 @@ const patientController = {
         district,
         ward,
         address,
+        avatar
       } = req.body;
 
       // Tìm kiếm tài khoản theo email và mật khẩu
@@ -135,6 +174,7 @@ const patientController = {
         existingUser.CCCD = CCCD;
         existingUser.job = job;
         existingUser.phone = phone;
+        existingUser.avatar = avatar;
         // Lưu thay đổi
         await existingUser.save();
 
@@ -149,7 +189,7 @@ const patientController = {
       res.status(500).json({ message: err.message });
     }
   },
-  
+
 };
 
 module.exports = patientController;

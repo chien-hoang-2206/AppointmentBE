@@ -2,7 +2,21 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    title: {
+    fullName: {
+        type: String,
+    },
+    age: {
+        type: Number,
+    },
+    gender: {
+        type: String,
+        default: 'Male',
+        enum: ['Male', 'Female', 'Other']
+    },
+    phone: {
+        type: Number,
+    },
+    email: {
         type: String,
     },
     content: {
@@ -11,18 +25,26 @@ const userSchema = new mongoose.Schema({
     reply: {
         type: String,
     },
-    userReplyId: {
+    user_id: {
         type: String,
     },
-    date: {
-        type: Date,
+    doctor_id: {
+        type: String,
     },
-    createdBy: {
+    title: {
+        type: String,
+    },
+    status: {
         type: Number,
+        default: 1
     },
     created_at: {
         type: Date,
         default: Date.now
+    },
+    department_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department'
     }
 });
 

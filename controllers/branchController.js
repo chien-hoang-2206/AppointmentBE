@@ -4,7 +4,7 @@ const Department = require('../models/departmentModel');
 const branchController = {
     getListBranch: async (req, res) => {
         try {
-            const { keyword, id } = req.query;
+            const { keyword, id, KeywordDP, DoctorId } = req.query;
             let query = {};
             if (keyword) {
                 query = {
@@ -17,7 +17,13 @@ const branchController = {
             if (id) {
                 const branches = await Branch.findById(id).lean();
                 // Duyệt qua từng chi nhánh
-                const departments = await Department.find({ branchId: id }).lean();
+
+                let departments = await Department.find({ branchId: id }).lean();
+
+                if (KeywordDP) {
+                    const lowerCaseKeywordDP = KeywordDP.toLowerCase();
+                    departments = departments.filter(dept => dept.name.toLowerCase().includes(lowerCaseKeywordDP));
+                }
                 // Lặp qua từng phòng ban và lấy danh sách doctorIds
                 const doctorIds = departments.reduce((acc, dept) => acc.concat(dept.doctorIds || []), []);
                 // Lấy thông tin của các tài khoản tương ứng với doctorIds
@@ -34,7 +40,6 @@ const branchController = {
                 // Duyệt qua từng chi nhánh
                 for (let branch of branches) {
                     const departments = await Department.find({ branchId: branch._id }).lean();
-                    console.log("🚀 ~ getListBranch: ~ departments:", departments)
                     // Lặp qua từng phòng ban và lấy danh sách doctorIds
                     const doctorIds = departments.reduce((acc, dept) => acc.concat(dept.doctorIds || []), []);
                     // Lấy thông tin của các tài khoản tương ứng với doctorIds
@@ -46,6 +51,23 @@ const branchController = {
                     }));
                 }
                 res.json(branches);
+            }
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
+    getListBranchForDoctor: async (req, res) => {
+        try {
+            const { doctorId } = req.query;
+            if (doctorId) {
+                const doctorInfo = await Account.findById(doctorId).lean();
+                Branch.find({ _id: { $in: doctorInfo?.branchId } })
+                    .then(branches => {
+                        res.json(branches);
+                    })
+                    .catch(error => {
+                        res.status(500).json({ message: error });
+                    });
             }
         } catch (err) {
             res.status(500).json({ message: err.message });
@@ -69,13 +91,12 @@ const branchController = {
     },
     updateBranch: async (req, res) => {
         try {
-            const { _id, name, address, departmentIds, doctorIds } = req.body;
+            const { _id, name, image, address } = req.body;
             const existingObject = await Branch.findById(_id);
             if (existingObject) {
                 existingObject.name = name;
                 existingObject.address = address;
-                existingObject.departmentIds = departmentIds;
-                existingObject.doctorIds = doctorIds;
+                existingObject.image = image;
                 // Lưu thay đổi
                 await existingObject.save();
 
@@ -92,16 +113,15 @@ const branchController = {
     },
     deleteBranch: async (req, res) => {
         try {
-            const { _id } = req.body;
+            const { id } = req.params;
             // Kiểm tra xem branch tồn tại không
-            const existingBranch = await Branch.findById(_id);
+            const existingBranch = await Branch.findById(id);
             if (!existingBranch) {
                 // Nếu branch không tồn tại, trả về lỗi
                 return res.status(404).json({ error: 'Branch not found' });
             }
-
             // Nếu branch tồn tại, tiến hành xóa
-            await Branch.findByIdAndDelete(_id);
+            await Branch.findByIdAndDelete(id);
             // Trả về thông báo thành công
             return res.status(200).json({ message: 'Branch deleted successfully' });
         } catch (err) {

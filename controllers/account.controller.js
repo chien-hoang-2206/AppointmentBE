@@ -1,5 +1,8 @@
 const Account = require('../models/accountModel');
 
+const AvatarDefaultMale = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSd8cA2ZFhDQNoAbQ5l5qx6HFzrUHziPweY3BR5vm_cJQ&s'
+const AvatarDefaulFetMale = 'https://i.pinimg.com/originals/d3/f9/13/d3f913b8dd27fac04b26c2c9a903610d.png'
+
 const accountController = {
 
   signupAccount: async (req, res) => {
@@ -23,9 +26,97 @@ const accountController = {
       res.status(400).json({ message: err.message });
     }
   },
+  signupAccountDoctor: async (req, res) => {
+    try {
+      const {
+        fullName,
+        specialize,
+        experience,
+        // address,
+        // province,
+        // district,
+        // ward,
+        branchId,
+        dateOfBirth,
+        gender,
+        academicRank,
+        phone,
+        email,
+        // position,
+        // academicRank,
+        degree,
+        introduction,
+        // departmentId,
+        // username,
+        avatar,
+        password = 123456,
+        role = 2
+      } = req.body;
+      // Kiểm tra xem email đã tồn tại trong cơ sở dữ liệu chưa
+      const existingUser = await Account.findOne({ phone });
+      if (existingUser) {
+        // Nếu email đã tồn tại, trả về lỗi và ngăn không cho tạo tài khoản mới
+        return res.status(202).json({ error: 'Phone already exists' });
+      }
+      // Tạo mới tài khoản với thông tin được cung cấp
+      if (avatar) {
+        avatarUrl = avatar
+      } else {
+        if (gender === 'male') {
+          avatarUrl = AvatarDefaultMale
+        } else {
+          avatarUrl = AvatarDefaulFetMale
+        }
+      }
+      const newUser = new Account({
+        fullName,
+        specialize,
+        experience,
+        // address,
+        // province,
+        // district,
+        phone,
+        gender,
+        dateOfBirth,
+        email,
+        branchId,
+        academicRank,
+        degree,
+        // province,
+        // district,
+        // ward,
+        // address,
+        // branchId,
+        // departmentId,
+        // position,
+        introduction,
+        avatar: avatarUrl,
+        password,
+        role
+      });
+      // Lưu tài khoản mới vào cơ sở dữ liệu
+      const savedUser = await newUser.save();
+      // Trả về thông tin tài khoản vừa được tạo
+      res.status(201).json(savedUser);
+    } catch (err) {
+      // Xử lý lỗi nếu có
+      res.status(400).json({ message: err.message });
+    }
+  },
+  getAccountDetail: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await Account.findById(id);
+      if (user) {
+        res.status(200).json(user);
+      }
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  },
   getListAccount: async (req, res) => {
     try {
-      const { keyword, role } = req.query;
+      const { keyword, role, branchId } = req.query;
       let query = {};
       if (keyword) {
         query = {
@@ -39,6 +130,9 @@ const accountController = {
       // Sử dụng $and để kết hợp điều kiện tìm kiếm keyword và role (nếu có)
       if (role) {
         query.role = role;
+      }
+      if (branchId) {
+        query.branchId = branchId;
       }
       const users = await Account.find(query);
       res.json(users);
@@ -62,28 +156,64 @@ const accountController = {
   },
   updateAccountInfo: async (req, res) => {
     try {
-      const { id, email, avatar, fullName, address, province, district, ward, dateOfBirth, gender, phoneNumber, position, academicRank, degree, introduction, departmentId, branchId, username } = req.body;
+      const { id } = req.params;
+      const { email, avatar, fullName, address, province, district, ward, dateOfBirth, gender, phoneNumber, position, academicRank, degree, introduction, departmentId, branchId, status } = req.body;
 
       // Tìm kiếm tài khoản theo email và mật khẩu
       const existingUser = await Account.findById(id);
       if (existingUser) {
         // Cập nhật thông tin nếu tài khoản đã tồn tại
-        existingUser.fullName = fullName;
-        existingUser.address = address;
-        existingUser.province = province;
-        existingUser.district = district;
-        existingUser.ward = ward;
-        existingUser.dateOfBirth = dateOfBirth;
-        existingUser.gender = gender;
-        existingUser.phoneNumber = phoneNumber;
-        existingUser.position = position;
-        existingUser.academicRank = academicRank;
-        existingUser.degree = degree;
-        existingUser.introduction = introduction;
-        existingUser.departmentId = departmentId;
-        existingUser.branchId = branchId;
-        existingUser.username = username;
-        existingUser.avatar = avatar;
+        if (fullName) {
+          existingUser.fullName = fullName;
+        }
+        if (email) {
+          existingUser.email = email;
+        }
+        if (address) {
+          existingUser.address = address;
+        }
+        if (province) {
+          existingUser.province = province;
+        }
+        if (district) {
+          existingUser.district = district;
+        }
+        if (ward) {
+          existingUser.ward = ward;
+        }
+        if (dateOfBirth) {
+          existingUser.dateOfBirth = dateOfBirth;
+        }
+        if (gender) {
+          existingUser.gender = gender;
+        }
+        if (phoneNumber) {
+          existingUser.phoneNumber = phoneNumber;
+        }
+        if (position) {
+          existingUser.position = position;
+        }
+        if (academicRank) {
+          existingUser.academicRank = academicRank;
+        }
+        if (degree) {
+          existingUser.degree = degree;
+        }
+        if (introduction) {
+          existingUser.introduction = introduction;
+        }
+        if (branchId) {
+          existingUser.branchId = branchId;
+        }
+        if (departmentId) {
+          existingUser.departmentId = departmentId;
+        }
+        if (avatar) {
+          existingUser.avatar = avatar;
+        }
+        if (status) {
+          existingUser.status = status;
+        }
         // Lưu thay đổi
         await existingUser.save();
 

@@ -23,13 +23,14 @@ const userSchema = new mongoose.Schema({
     gender: {
         type: String,
         default: 'Male',
-        enum: ['Male', 'Female']
+        enum: ['Male', 'Female', 'Other']
     },
     phone: {
         type: String,
-        minlength: 10,
+        minlength: 9,
         maxlength: 11,
-        unique: true
+        unique: true,
+        required: true
     },
     email: {
         type: String,
@@ -38,7 +39,9 @@ const userSchema = new mongoose.Schema({
     },
     position: String,
     academicRank: String,
-    degree: String,
+    degree: [{
+        type: String
+    }],
     introduction: String,
     departmentId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -59,7 +62,13 @@ const userSchema = new mongoose.Schema({
     avatar: {
         type: String,
         default: AvatarDefault
-    }
+    },
+    specialize: [{
+        type: String
+    }],
+    experience: [{
+        type: String
+    }],
 });
 
 module.exports = mongoose.model('Account', userSchema);
