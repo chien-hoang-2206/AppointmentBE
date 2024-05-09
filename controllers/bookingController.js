@@ -10,6 +10,8 @@ async function getDetailBookingFull(data, UserId, DoctorId) {
     let result = { ...data }
     let shiftInfo = {}
     const shift = await scheduleModel.findById(data.shiftId).lean()
+    result.doctorId = shift.doctorId
+    result.doctorName = shift.doctorId
     if (DoctorId) {
         if (DoctorId === shift.doctorId.toString()) {
             shiftInfo = shift
@@ -329,7 +331,63 @@ const bookingController = {
             console.error(error);
             throw error;
         }
-    }
+    },
+    getTopBookingDoctor: async (req, res) => {
+        const { Year, Month, Status } = req.query
+        try {
+            let pipeline = [];
+            if (Year) {
+                const matchStage = {
+                    $match: {
+                        created_at: {
+                            $gte: new Date(Year, Month ? parseInt(Month - 1) : 0, 1), // Ngày bắt đầu của năm hoặc tháng
+                            $lt: Month ? new Date(Year, parseInt(Month), 1) : new Date(Year + 1, 0, 1) // Ngày kết thúc của tháng hoặc năm
+                        }
+                    }
+                };
+
+                if (Status !== undefined) {
+                    matchStage.$match.status = parseInt(Status);
+                }
+
+                pipeline.push(matchStage);
+            }
+            let listBooking = []
+            const list = await Booking.aggregate(pipeline);
+
+            for (const element of list) {
+                const item = await getDetailBookingFull(element);
+                if (item) {
+                    listBooking.push(item);
+                }
+            }
+
+            const groupedBookings = listBooking.reduce((acc, booking) => {
+                if (!acc[booking.doctorId]) {
+                    acc[booking.doctorId] = [];
+                }
+                acc[booking.doctorId].push(booking);
+                return acc;
+            }, {});
+
+            // Bước 2: Đếm số lượng lượt booking của mỗi bác sĩ
+            const doctorBookingCounts = Object.keys(groupedBookings).map((doctorId) => ({
+                doctorId,
+                bookingCount: groupedBookings[doctorId].length
+            }));
+
+            // Bước 3: Sắp xếp các bác sĩ theo số lượng lượt booking giảm dần
+            doctorBookingCounts.sort((a, b) => b.bookingCount - a.bookingCount);
+
+            // Bước 4: Chọn ra top các bác sĩ có số lượng lượt booking cao nhất (ví dụ: top 3)
+            const topDoctors = doctorBookingCounts.slice(0, 3);
+
+            return res.status(200).json(topDoctors);
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
 
 }
 module.exports = bookingController;

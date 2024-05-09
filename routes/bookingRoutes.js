@@ -11,7 +11,7 @@ router.get('/', bookingController.getListBooking)
 // Chi tiết booking (generic parameterized route)
 
 router.get('/chart', bookingController.getChart)
-// router.get('/top', bookingController.getTopBookingPgt)
+router.get('/top', bookingController.getTopBookingDoctor)
 
 
 router.get('/:id', bookingController.getDetailBooking)
