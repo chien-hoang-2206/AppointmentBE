@@ -1,3 +1,4 @@
+const accountModel = require('../models/accountModel');
 const Account = require('../models/accountModel');
 
 const AvatarDefaultMale = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSd8cA2ZFhDQNoAbQ5l5qx6HFzrUHziPweY3BR5vm_cJQ&s'
@@ -112,6 +113,29 @@ const accountController = {
       }
     } catch (err) {
       res.status(500).json({ message: err.message });
+    }
+  },
+  changePassword: async (req, res) => {
+    const { id } = req.params;
+    const { oldPassword, newPassword } = req.body;
+
+    try {
+      // Find the account by ID
+      const account = await Account.findById(id);
+      if (!account) {
+        return res.status(404).json({ message: "Không tim thấy tài khoản" });
+      }
+
+      // Compare old password
+      const isPasswordValid = oldPassword === account.password ? true : false;
+      if (!isPasswordValid) {
+        return res.status(400).json({ message: "Sai mật khẩu cũ" });
+      }
+      // Update the password in the database
+      await Account.findByIdAndUpdate(id, { password: newPassword });
+      res.status(200).json({ message: "Thay đổi mật khẩu thành công" });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
   },
   getListAccount: async (req, res) => {

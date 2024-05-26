@@ -4,7 +4,7 @@ const cors = require('cors');
 
 // const paymentRoutes = require('./routes/paymentRoutes');
 // const bannerRoutes = require('./routes/bannerRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
+// const appointmentRoutes = require('./routes/appointmentRoutes');
 const accountRoutes = require('./routes/account.routes');
 const patientRoutes = require('./routes/patient.routes');
 const scheduleRoutes = require('./routes/schedule.routes');
@@ -31,7 +31,7 @@ app.use('/booking', bookingRoutes);
 app.use('/schedule', scheduleRoutes);
 app.use('/branches', branchRoutes);
 app.use('/department', departmentRoutes);
-app.use('/appointment', appointmentRoutes);
+// app.use('/appointment', appointmentRoutes);
 app.use('/feedback', feedbackRoutes);
 app.use('/question', questionRoutes);
 // app.use('/pgt', pgtRoutes);

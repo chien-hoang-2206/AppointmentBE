@@ -4,7 +4,7 @@ const Department = require('../models/departmentModel');
 const branchController = {
     getListBranch: async (req, res) => {
         try {
-            const { keyword, id, KeywordDP, DoctorId } = req.query;
+            const { keyword, id, KeywordDP, DoctorId,province } = req.query;
             let query = {};
             if (keyword) {
                 query = {
@@ -13,6 +13,9 @@ const branchController = {
                         { address: { $regex: keyword, $options: 'i' } },
                     ]
                 };
+            }
+            if (province) {
+                query.province = province;
             }
             if (id) {
                 const branches = await Branch.findById(id).lean();
@@ -75,14 +78,13 @@ const branchController = {
     },
     createBranch: async (req, res) => {
         try {
-            const { name, address, image } = req.body;
+            const { name, province, address, image } = req.body;
             const existingBranch = await Branch.findOne({ name });
             if (existingBranch) {
                 // Nếu email đã tồn tại, trả về lỗi và ngăn không cho tạo tài khoản mới
                 return res.status(202).json({ status: 201, message: 'Bệnh viện đã tồn tại' });
-
             }
-            const newObject = new Branch({ name, address, image });
+            const newObject = new Branch({ name, province, address, image });
             const savedData = await newObject.save();
             res.status(200).json({ _id: savedData._id, status: 200 });
         } catch (err) {
@@ -91,11 +93,12 @@ const branchController = {
     },
     updateBranch: async (req, res) => {
         try {
-            const { _id, name, image, address } = req.body;
+            const { _id, name, province, image, address } = req.body;
             const existingObject = await Branch.findById(_id);
             if (existingObject) {
                 existingObject.name = name;
                 existingObject.address = address;
+                existingObject.province = province;
                 existingObject.image = image;
                 // Lưu thay đổi
                 await existingObject.save();

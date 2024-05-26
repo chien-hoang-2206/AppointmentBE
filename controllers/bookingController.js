@@ -1,6 +1,8 @@
 const accountModel = require('../models/accountModel');
+const bookingModel = require('../models/bookingModel');
 const Booking = require('../models/bookingModel');
 const branchModel = require('../models/branchModel');
+const departmentModel = require('../models/departmentModel');
 const feedbackModel = require('../models/feedbackModel');
 const patientModel = require('../models/patientModel');
 const scheduleModel = require('../models/scheduleModel');
@@ -98,20 +100,39 @@ const bookingController = {
             res.status(500).json({ message: err.message });
         }
     },
+    getOverView: async (req, res) => {
+        try {
+            // Count the total number of bookings
+            const bookingCount = await bookingModel.countDocuments();
 
+            // Count the total number of patients
+            const patientCount = await patientModel.countDocuments();
+
+            // Count the total number of accounts with role = 2
+            const accountCount = await accountModel.countDocuments({ role: 2 });
+
+            // Count the total number of branches
+            const branchCount = await branchModel.countDocuments();
+
+            // Count the total number of departments
+            const departmentCount = await departmentModel.countDocuments();
+
+            // Return the counts as an overview object
+            res.json({
+                bookingCount,
+                patientCount,
+                accountCount,
+                branchCount,
+                departmentCount
+            });
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
     getListBooking: async (req, res) => {
         try {
-            const { keyword, UserId, DoctorId } = req.query;
+            const { Keyword, UserId, DoctorId } = req.query;
             let query = {};
-            if (keyword) {
-                query = {
-                    $or: [
-                        { fullName: { $regex: keyword, $options: 'i' } },
-                        { email: { $regex: keyword, $options: 'i' } },
-                        { phoneNumber: { $regex: keyword, $options: 'i' } }
-                    ]
-                };
-            }
             let result = [];
             const listData = await Booking.find(query).lean();
             for (const element of listData) {
@@ -381,8 +402,18 @@ const bookingController = {
 
             // Bước 4: Chọn ra top các bác sĩ có số lượng lượt booking cao nhất (ví dụ: top 3)
             const topDoctors = doctorBookingCounts.slice(0, 3);
-
-            return res.status(200).json(topDoctors);
+            const finalResult = [];
+            for (const doctor of topDoctors) {
+                const account = await accountModel.findById(doctor.doctorId);
+                if (account) {
+                    finalResult.push({
+                        doctorId: doctor.doctorId,
+                        fullName: account.fullName,
+                        bookingCount: doctor.bookingCount
+                    });
+                }
+            }
+            return res.status(200).json(finalResult);
         } catch (error) {
             console.error(error);
             throw error;

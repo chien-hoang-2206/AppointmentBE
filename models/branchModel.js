@@ -5,6 +5,9 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String,
     },
+    province: {
+        type: Number,
+    },
     image: {
         type: String,
     },

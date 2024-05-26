@@ -17,6 +17,5 @@ router.post("/login", accountController.loginAccount);
 //edit info
 router.put("/:id", accountController.updateAccountInfo);
 
-// update photo 
-// router.put("/photo/:id", accountController.updateAccountPhotoList);
+router.put("/change-password/:id", accountController.changePassword);
 module.exports = router;

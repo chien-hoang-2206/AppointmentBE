@@ -101,7 +101,8 @@ const scheduleController = {
       if (status) {
         query.status = status;
       }
-      const listData = await Schedule.find(query);
+      const listData = await Schedule.find(query).populate('doctorId', 'fullName');
+      // const listData = await Schedule.find(query);
       res.json(listData);
     } catch (err) {
       res.status(500).json({ message: err.message });

@@ -1,10 +1,42 @@
 const Department = require('../models/departmentModel')
+const Branch= require('../models/branchModel')
 
 const departmentController = {
     getListDepartment: async (req, res) => {
         try {
-            const { branch } = req.query;
+            const { keyword, branch } = req.query;
             let query = {};
+            if (keyword) {
+                query = {
+                    $or: [
+                        { name: { $regex: keyword, $options: 'i' } },
+                    ]
+                };
+                const listDataDP = await Department.find(query);
+        
+                // Extract all branchId values from listDataDP
+                const branchIds = listDataDP.map(department => department.branchId);
+        
+                // Find branch information for the extracted branchIds
+                const branchData = await Branch.find({ _id: { $in: branchIds } });
+        
+                // Create a map for quick lookup of branch information by branchId
+                const branchMap = branchData.reduce((map, branch) => {
+                    map[branch._id] = branch;
+                    return map;
+                }, {});
+        
+                // Attach branch information to the departments
+                const listDataDT = listDataDP.map(department => {
+                    const branchInfo = branchMap[department.branchId];
+                    return {
+                        ...department._doc, // Spread the department document fields
+                        branchInfo,        // Add the branch information
+                    };
+                });
+                res.json(listDataDT);
+
+            }
             if (branch) {
                 query.branchId = branch;
             }

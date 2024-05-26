@@ -39,7 +39,6 @@ const userSchema = new mongoose.Schema({
     },
     CCCD: {
         type: String,
-        maxlength: 12,
         unique: true
     },
     nation: {

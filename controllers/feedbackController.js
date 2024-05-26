@@ -4,7 +4,7 @@ const Feedback = require('../models/feedbackModel')
 const FeedbackRoutes = {
     getListFeedback: async (req, res) => {
         try {
-            const { doctor_id } = req.body;
+            const { doctor_id } = req.query;
             let query = {};
             if (doctor_id) {
                 query.doctor_id = doctor_id;
